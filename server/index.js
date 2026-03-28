@@ -25,7 +25,9 @@ app.set("trust proxy", true);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, "..");
 const distPath = path.join(projectRoot, "dist");
-const uploadsPath = path.join(projectRoot, "public", "uploads");
+const uploadsPath = config.uploadsDir
+  ? path.resolve(config.uploadsDir)
+  : path.join(projectRoot, "public", "uploads");
 
 fs.mkdirSync(uploadsPath, { recursive: true });
 
@@ -253,6 +255,7 @@ const start = async () => {
 
   app.listen(config.port, () => {
     console.log(`API server listening on http://localhost:${config.port}`);
+    console.log(`Uploads directory: ${uploadsPath}`);
   });
 };
 

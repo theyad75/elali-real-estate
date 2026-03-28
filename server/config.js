@@ -13,6 +13,7 @@ export const config = {
   adminJwtSecret: process.env.ADMIN_JWT_SECRET || "",
   clientOrigin: process.env.CLIENT_ORIGIN ? trimTrailingSlash(process.env.CLIENT_ORIGIN) : "",
   siteUrl: process.env.SITE_URL ? trimTrailingSlash(process.env.SITE_URL) : "",
+  uploadsDir: process.env.UPLOADS_DIR || "",
 };
 
 export const validateServerConfig = () => {
