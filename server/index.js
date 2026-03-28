@@ -13,6 +13,7 @@ import {
   verifyAdminCredentials,
 } from "./lib/auth.js";
 import { toPropertyDocument, serializeProperty } from "./lib/properties.js";
+import { buildSitemapXml, resolveSiteUrl } from "./lib/sitemap.js";
 import { requireAdmin } from "./middleware/require-admin.js";
 import { Property } from "./models/Property.js";
 import { defaultProperties } from "./data/defaultProperties.js";
@@ -20,6 +21,7 @@ import { defaultProperties } from "./data/defaultProperties.js";
 validateServerConfig();
 
 const app = express();
+app.set("trust proxy", true);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, "..");
 const distPath = path.join(projectRoot, "dist");
@@ -73,6 +75,40 @@ app.use("/uploads", express.static(uploadsPath));
 
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
+});
+
+app.get("/sitemap.xml", async (req, res, next) => {
+  try {
+    const properties = await Property.find({}, { _id: 1, createdAt: 1, updatedAt: 1 }).lean();
+    const siteUrl = resolveSiteUrl({
+      configuredSiteUrl: config.siteUrl,
+      req,
+    });
+
+    res.type("application/xml");
+    res.send(
+      buildSitemapXml({
+        siteUrl,
+        properties,
+      }),
+    );
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/robots.txt", (req, res) => {
+  const siteUrl = resolveSiteUrl({
+    configuredSiteUrl: config.siteUrl,
+    req,
+  });
+
+  res.type("text/plain");
+  res.send(`User-agent: *
+Allow: /
+
+Sitemap: ${siteUrl}/sitemap.xml
+`);
 });
 
 app.post("/api/admin/login", async (req, res) => {
